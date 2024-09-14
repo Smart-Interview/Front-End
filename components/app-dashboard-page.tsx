@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { UserCircle, Briefcase, FileText, MessageSquare } from 'lucide-react'
 
-export default function Home() {
+export function Page() {
   const [activeTab, setActiveTab] = useState('job-offer')
 
   return (
