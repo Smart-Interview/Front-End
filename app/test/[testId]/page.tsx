@@ -6,17 +6,13 @@ import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import QuestionLoader from '@/components/question-loader';
 
 interface Question {
   id: number;
   question: string;
   options: string[];
   answer: string;
-}
-
-interface TestResult {
-  numberQuestions: number;
-  result: number;
 }
 
 export default function TestPage({ params }: { params: { testId: string } }) {
@@ -27,7 +23,7 @@ export default function TestPage({ params }: { params: { testId: string } }) {
   const [timeLeft, setTimeLeft] = useState<number>(300); // 5 minutes in seconds
   const [isTestCompleted, setIsTestCompleted] = useState<boolean>(false);
   const [answers, setAnswers] = useState<{ testAnswer: string; candidateAnswer: string }[]>([]);
-  const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const [testResult, setTestResult] = useState<number | null>(null);
 
   // Fetch questions from the API route
   useEffect(() => {
@@ -104,7 +100,7 @@ export default function TestPage({ params }: { params: { testId: string } }) {
       });
 
       if (response.ok) {
-        const result: TestResult = await response.json();
+        const result: number = await response.json();
         setTestResult(result); // Save the test result
       } else {
         console.error('Error submitting test:', response.statusText);
@@ -121,7 +117,7 @@ export default function TestPage({ params }: { params: { testId: string } }) {
   };
 
   if (questions.length === 0) {
-    return <p>Loading questions...</p>;
+    return <QuestionLoader />;
   }
 
   if (isTestCompleted) {
@@ -133,7 +129,7 @@ export default function TestPage({ params }: { params: { testId: string } }) {
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold mb-4">Test Completed!</h2>
               <p className="text-gray-600 mb-4">
-                You answered {testResult.numberQuestions} questions, and your score is {testResult.result}.
+                Your final score is {testResult} % 
               </p>
             </>
           ) : (
@@ -148,7 +144,7 @@ export default function TestPage({ params }: { params: { testId: string } }) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-lg w-full">
+      <div className="bg-white p-8 rounded-lg shadow-md max-w-4xl w-full"> {/* Increased max-width */}
         <div className="flex justify-between items-center mb-4">
           <span className="text-lg font-semibold">
             Question {currentQuestionIndex + 1} of {questions.length}
@@ -161,29 +157,29 @@ export default function TestPage({ params }: { params: { testId: string } }) {
           value={((currentQuestionIndex + 1) / questions.length) * 100}
           className="mb-6"
         />
-        <h2 className="text-xl font-bold mb-4">{currentQuestion.question}</h2>
+        <h2 className="text-xl font-bold mb-6">{currentQuestion.question}</h2>
         <RadioGroup
           value={selectedAnswer}
           onValueChange={setSelectedAnswer}
-          className="space-y-2"
+          className="space-y-4"
         >
           {currentQuestion.options.map((option, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={`option-${index}`} />
-              <Label htmlFor={`option-${index}`}>{option}</Label>
+            <div key={index} className="flex items-center space-x-4">
+              <div><RadioGroupItem value={option} id={`option-${index}`} /></div>
+              <div><Label htmlFor={`option-${index}`} className="text-lg">{option}</Label></div>
             </div>
           ))}
         </RadioGroup>
         {selectedAnswer === '' && (
-          <div className="flex items-center text-yellow-600 mt-4">
-            <AlertCircle className="w-5 h-5 mr-2" />
-            <span>Please select an answer before proceeding.</span>
+          <div className="flex items-center text-yellow-600 mt-6">
+            <AlertCircle className="w-6 h-6 mr-2" />
+            <span className="text-lg">Please select an answer before proceeding.</span>
           </div>
         )}
         <Button
           onClick={handleNextQuestion}
           disabled={selectedAnswer === ''}
-          className="w-full mt-6"
+          className="w-full mt-8 text-lg py-6"
         >
           {currentQuestionIndex === questions.length - 1 ? 'Submit Test' : 'Next Question'}
         </Button>
