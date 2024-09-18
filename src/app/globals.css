@@ -1,27 +1,74 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Black and white theme for add-employee and all-hr pages */
+.black-white-theme {
+  background-color: #000;
+  color: #fff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.black-white-theme button {
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #fff;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+.black-white-theme input, .black-white-theme select {
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #fff;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.black-white-theme table {
+  background-color: #000;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.black-white-theme th, .black-white-theme td {
+  border: 1px solid #fff;
+  padding: 8px;
+}
+
+.black-white-theme th {
+  background-color: #111;
+}
+
+.black-white-theme td {
+  background-color: #222;
+}
+
+.black-white-theme {
+  background-color: #000;
+  color: #fff;
+}
+
+.black-white-theme p {
+  color: #fff;
+}
+
+.black-white-theme li {
+  border-color: #fff;
+}
+
+.black-white-theme h1 {
+  color: #fff;
+}
+
+.black-white-theme {
+  background-color: #000;
+  color: #fff;
+}
+
+.black-white-theme label {
+  color: #fff;
+}
+
+.black-white-theme input {
+  color: #fff;
+}
+
+.black-white-theme button {
+  background-color: #fff;
+  color: #000;
 }
