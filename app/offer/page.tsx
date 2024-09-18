@@ -2,19 +2,25 @@
 
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { MapPin, DollarSign } from 'lucide-react'
+import { Briefcase, Calendar, FileText } from 'lucide-react'
+
+interface JobDescription {
+  overview: string;
+  responsibilities: string[];
+  requirements: string[];
+  benefits: string[];
+}
 
 interface JobOffer {
-  id: number
-  title: string
-  company: string
-  location: string
-  salary: string
-  description: string
+  id: number;
+  title: string;
+  company: string;
+  deadline: string;
+  description: JobDescription;
 }
 
 const mockOffers: JobOffer[] = [
@@ -22,25 +28,82 @@ const mockOffers: JobOffer[] = [
     id: 1,
     title: "Software Engineer",
     company: "Tech Innovators Inc.",
-    location: "San Francisco, CA",
-    salary: "$120,000 - $160,000",
-    description: "Join our team to build cutting-edge web applications using the latest technologies."
+    deadline: "2023-12-31",
+    description: {
+      overview: "Join our team to build cutting-edge web applications using the latest technologies.",
+      responsibilities: [
+        "Develop and maintain high-quality web applications",
+        "Collaborate with cross-functional teams to define and implement new features",
+        "Optimize application for maximum speed and scalability",
+        "Write clean, maintainable, and efficient code"
+      ],
+      requirements: [
+        "Bachelor's degree in Computer Science or related field",
+        "3+ years of experience in full-stack web development",
+        "Proficiency in JavaScript, React, and Node.js",
+        "Experience with cloud platforms (AWS, Azure, or GCP)"
+      ],
+      benefits: [
+        "Competitive salary and equity package",
+        "Health, dental, and vision insurance",
+        "Flexible work hours and remote work options",
+        "Professional development budget"
+      ]
+    }
   },
   {
     id: 2,
     title: "Data Scientist",
     company: "Data Insights Co.",
-    location: "New York, NY",
-    salary: "$130,000 - $180,000",
-    description: "Apply machine learning and statistical models to solve complex business problems."
+    deadline: "2024-01-15",
+    description: {
+      overview: "Apply machine learning and statistical models to solve complex business problems.",
+      responsibilities: [
+        "Develop and implement advanced machine learning models",
+        "Analyze large datasets to extract valuable insights",
+        "Create data visualizations and reports for stakeholders",
+        "Collaborate with engineering teams to deploy models to production"
+      ],
+      requirements: [
+        "Master's or PhD in Data Science, Statistics, or related field",
+        "Strong programming skills in Python and R",
+        "Experience with big data technologies (Hadoop, Spark)",
+        "Excellent communication and presentation skills"
+      ],
+      benefits: [
+        "Competitive salary based on experience",
+        "Stock options and annual bonus",
+        "Health and wellness programs",
+        "Continuous learning opportunities"
+      ]
+    }
   },
   {
     id: 3,
     title: "UX Designer",
     company: "Creative Solutions Ltd.",
-    location: "London, UK",
-    salary: "£60,000 - £80,000",
-    description: "Create intuitive and engaging user experiences for our digital products."
+    deadline: "2024-02-01",
+    description: {
+      overview: "Create intuitive and engaging user experiences for our digital products.",
+      responsibilities: [
+        "Conduct user research and usability testing",
+        "Create wireframes, prototypes, and high-fidelity designs",
+        "Collaborate with product managers and developers",
+        "Iterate on designs based on user feedback and data"
+      ],
+      requirements: [
+        "Bachelor's degree in Design, HCI, or related field",
+        "3+ years of experience in UX/UI design",
+        "Proficiency in design tools (Figma, Sketch, Adobe XD)",
+        "Strong portfolio demonstrating problem-solving skills"
+      ],
+      benefits: [
+        "Competitive salary and performance bonuses",
+        "Flexible work environment",
+        "Health and wellness benefits",
+        "Professional development opportunities"
+      ]
+    }
   },
 ]
 
@@ -48,34 +111,74 @@ export default function CandidateOffersPage() {
   const [selectedOffer, setSelectedOffer] = useState<JobOffer | null>(null)
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-8">
+    <div className="min-h-screen bg-white text-black p-8">
       <h1 className="text-3xl font-bold mb-8">Job Offers</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {mockOffers.map((offer) => (
-          <Card key={offer.id} className="bg-gray-800 border-gray-700">
+          <Card key={offer.id} className="bg-white border-black">
             <CardHeader>
-              <CardTitle className="text-gray-100">{offer.title}</CardTitle>
-              <CardDescription className="text-gray-400">{offer.company}</CardDescription>
+              <CardTitle className="text-black">{offer.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center mb-2 text-gray-300">
-                <MapPin className="mr-2 h-4 w-4" />
-                <span>{offer.location}</span>
+              <p className="text-sm text-gray-600 mb-2">{offer.company}</p>
+              <div className="flex items-center text-sm text-gray-500">
+                <Calendar className="w-4 h-4 mr-2" />
+                <span>Deadline: {offer.deadline}</span>
               </div>
-              <div className="flex items-center mb-4 text-gray-300">
-                <DollarSign className="mr-2 h-4 w-4" />
-                <span>{offer.salary}</span>
-              </div>
-              <p className="text-sm text-gray-400">{offer.description}</p>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex justify-between">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setSelectedOffer(offer)}>
-                    Apply with CV
+                  <Button variant="outline" className="border-black text-black hover:bg-gray-100" onClick={() => setSelectedOffer(offer)}>
+                    View Details
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] bg-white text-gray-900">
+                <DialogContent className="sm:max-w-[600px] bg-white text-black">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-semibold mb-2">{selectedOffer?.title}</DialogTitle>
+                    <DialogDescription className="text-gray-600 mb-4">
+                      {selectedOffer?.company} - Deadline: {selectedOffer?.deadline}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Overview</h3>
+                      <p className="text-sm text-black">{selectedOffer?.description.overview}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Responsibilities</h3>
+                      <ul className="list-disc pl-5 text-sm">
+                        {selectedOffer?.description.responsibilities.map((resp, index) => (
+                          <li key={index}>{resp}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Requirements</h3>
+                      <ul className="list-disc pl-5 text-sm">
+                        {selectedOffer?.description.requirements.map((req, index) => (
+                          <li key={index}>{req}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Benefits</h3>
+                      <ul className="list-disc pl-5 text-sm">
+                        {selectedOffer?.description.benefits.map((benefit, index) => (
+                          <li key={index}>{benefit}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-black text-white hover:bg-gray-800" onClick={() => setSelectedOffer(offer)}>
+                    Apply
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px] bg-white text-black">
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-semibold mb-2">Apply for {selectedOffer?.title}</DialogTitle>
                     <DialogDescription className="text-gray-600 mb-4">
@@ -84,18 +187,10 @@ export default function CandidateOffersPage() {
                   </DialogHeader>
                   <form className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="cv" className="text-sm font-medium text-gray-700">Upload CV</Label>
-                      <Input id="cv" type="file" className="bg-gray-100 border-gray-300 text-gray-900" />
+                      <Label htmlFor="cv" className="text-sm font-medium text-black">Upload CV</Label>
+                      <Input id="cv" type="file" className="bg-white border-black text-black" />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="coverLetter" className="text-sm font-medium text-gray-700">Cover Letter (Optional)</Label>
-                      <textarea
-                        id="coverLetter"
-                        className="w-full h-32 p-2 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-100 text-gray-900 border border-gray-300"
-                        placeholder="Write a brief cover letter..."
-                      ></textarea>
-                    </div>
-                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white">Submit Application</Button>
+                    <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800">Submit Application</Button>
                   </form>
                 </DialogContent>
               </Dialog>
