@@ -6,14 +6,21 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Briefcase } from 'lucide-react'
+import { Briefcase, Calendar, FileText } from 'lucide-react'
+
+interface JobDescription {
+  overview: string;
+  responsibilities: string[];
+  requirements: string[];
+  benefits: string[];
+}
 
 interface JobOffer {
-  id: number
-  title: string
-  company: string
-  description: string
-  fullDescription: string
+  id: number;
+  title: string;
+  company: string;
+  deadline: string;
+  description: JobDescription;
 }
 
 const mockOffers: JobOffer[] = [
@@ -21,22 +28,82 @@ const mockOffers: JobOffer[] = [
     id: 1,
     title: "Software Engineer",
     company: "Tech Innovators Inc.",
-    description: "Join our team to build cutting-edge web applications using the latest technologies.",
-    fullDescription: "We are seeking a talented Software Engineer to join our innovative team. In this role, you will be responsible for developing and maintaining high-quality web applications using cutting-edge technologies. You will work closely with our product and design teams to bring new features to life and ensure the best possible user experience. The ideal candidate has a strong background in full-stack development, is passionate about clean code, and stays up-to-date with the latest industry trends. Requirements include proficiency in JavaScript, React, Node.js, and experience with cloud platforms like AWS or Azure."
+    deadline: "2023-12-31",
+    description: {
+      overview: "Join our team to build cutting-edge web applications using the latest technologies.",
+      responsibilities: [
+        "Develop and maintain high-quality web applications",
+        "Collaborate with cross-functional teams to define and implement new features",
+        "Optimize application for maximum speed and scalability",
+        "Write clean, maintainable, and efficient code"
+      ],
+      requirements: [
+        "Bachelor's degree in Computer Science or related field",
+        "3+ years of experience in full-stack web development",
+        "Proficiency in JavaScript, React, and Node.js",
+        "Experience with cloud platforms (AWS, Azure, or GCP)"
+      ],
+      benefits: [
+        "Competitive salary and equity package",
+        "Health, dental, and vision insurance",
+        "Flexible work hours and remote work options",
+        "Professional development budget"
+      ]
+    }
   },
   {
     id: 2,
     title: "Data Scientist",
     company: "Data Insights Co.",
-    description: "Apply machine learning and statistical models to solve complex business problems.",
-    fullDescription: "Data Insights Co. is looking for a skilled Data Scientist to join our analytics team. In this role, you will apply advanced machine learning and statistical techniques to extract valuable insights from large datasets. You will work on a variety of projects, from predictive modeling to natural language processing, helping our clients make data-driven decisions. The ideal candidate has a strong background in statistics, machine learning, and programming. Proficiency in Python, R, and SQL is required, along with experience in big data technologies like Hadoop or Spark. A PhD or Master's degree in a quantitative field is preferred."
+    deadline: "2024-01-15",
+    description: {
+      overview: "Apply machine learning and statistical models to solve complex business problems.",
+      responsibilities: [
+        "Develop and implement advanced machine learning models",
+        "Analyze large datasets to extract valuable insights",
+        "Create data visualizations and reports for stakeholders",
+        "Collaborate with engineering teams to deploy models to production"
+      ],
+      requirements: [
+        "Master's or PhD in Data Science, Statistics, or related field",
+        "Strong programming skills in Python and R",
+        "Experience with big data technologies (Hadoop, Spark)",
+        "Excellent communication and presentation skills"
+      ],
+      benefits: [
+        "Competitive salary based on experience",
+        "Stock options and annual bonus",
+        "Health and wellness programs",
+        "Continuous learning opportunities"
+      ]
+    }
   },
   {
     id: 3,
     title: "UX Designer",
     company: "Creative Solutions Ltd.",
-    description: "Create intuitive and engaging user experiences for our digital products.",
-    fullDescription: "Creative Solutions Ltd. is seeking a talented UX Designer to help shape the future of our digital products. In this role, you will be responsible for creating intuitive and engaging user experiences across web and mobile platforms. You will conduct user research, create wireframes and prototypes, and work closely with our development team to bring your designs to life. The ideal candidate has a strong portfolio demonstrating their ability to solve complex design challenges, proficiency in design tools like Figma or Sketch, and excellent communication skills. Experience with user testing and a basic understanding of front-end development are a plus."
+    deadline: "2024-02-01",
+    description: {
+      overview: "Create intuitive and engaging user experiences for our digital products.",
+      responsibilities: [
+        "Conduct user research and usability testing",
+        "Create wireframes, prototypes, and high-fidelity designs",
+        "Collaborate with product managers and developers",
+        "Iterate on designs based on user feedback and data"
+      ],
+      requirements: [
+        "Bachelor's degree in Design, HCI, or related field",
+        "3+ years of experience in UX/UI design",
+        "Proficiency in design tools (Figma, Sketch, Adobe XD)",
+        "Strong portfolio demonstrating problem-solving skills"
+      ],
+      benefits: [
+        "Competitive salary and performance bonuses",
+        "Flexible work environment",
+        "Health and wellness benefits",
+        "Professional development opportunities"
+      ]
+    }
   },
 ]
 
@@ -53,7 +120,11 @@ export default function CandidateOffersPage() {
               <CardTitle className="text-black">{offer.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600 mb-4">{offer.company}</p>
+              <p className="text-sm text-gray-600 mb-2">{offer.company}</p>
+              <div className="flex items-center text-sm text-gray-500">
+                <Calendar className="w-4 h-4 mr-2" />
+                <span>Deadline: {offer.deadline}</span>
+              </div>
             </CardContent>
             <CardFooter className="flex justify-between">
               <Dialog>
@@ -62,15 +133,42 @@ export default function CandidateOffersPage() {
                     View Details
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] bg-white text-black">
+                <DialogContent className="sm:max-w-[600px] bg-white text-black">
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-semibold mb-2">{selectedOffer?.title}</DialogTitle>
                     <DialogDescription className="text-gray-600 mb-4">
-                      {selectedOffer?.company}
+                      {selectedOffer?.company} - Deadline: {selectedOffer?.deadline}
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="mt-4">
-                    <p className="text-sm text-black">{selectedOffer?.fullDescription}</p>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Overview</h3>
+                      <p className="text-sm text-black">{selectedOffer?.description.overview}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Responsibilities</h3>
+                      <ul className="list-disc pl-5 text-sm">
+                        {selectedOffer?.description.responsibilities.map((resp, index) => (
+                          <li key={index}>{resp}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Requirements</h3>
+                      <ul className="list-disc pl-5 text-sm">
+                        {selectedOffer?.description.requirements.map((req, index) => (
+                          <li key={index}>{req}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Benefits</h3>
+                      <ul className="list-disc pl-5 text-sm">
+                        {selectedOffer?.description.benefits.map((benefit, index) => (
+                          <li key={index}>{benefit}</li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>
