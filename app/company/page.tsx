@@ -19,7 +19,7 @@ export default function CompanyPage() {
   useEffect(() => {
     async function fetchCompanies() {
       try {
-        const response = await fetch("http://localhost:8081/company/companies");
+        const response = await fetch("http://localhost:8020/company/companies"); // it was 8081
         if (response.ok) {
           const data: Company[] = await response.json();
           setCompanies(data);
