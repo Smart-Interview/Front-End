@@ -1,0 +1,15 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DEMO_FRONTEND_CLIENT_ID: "smart-interview-client"
+      DEMO_FRONTEND_CLIENT_SECRET: "JeMRLLLRtAIon7Wfoa7QOKvVwI8FFRfG"
+      AUTH_ISSUER: "http://localhost:9090/realms/Smart-Inteview"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXTAUTH_SECRET: "my-secret-goes-here-abc-123"
+      END_SESSION_URL: "http://localhost:9090/realms/Smart-Inteview/protocol/openid-connect/logout"
+      DEMO_BACKEND_URL: "http://localhost:8222"
+      REFRESH_TOKEN_URL: "http://localhost:9090/realms/Smart-Inteview/protocol/openid-connect/token"
