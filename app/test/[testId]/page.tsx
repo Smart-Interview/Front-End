@@ -1,6 +1,6 @@
 'use client'; // Enforce client-side rendering
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -39,6 +39,44 @@ export default function TestPage({ params }: { params: { testId: string } }) {
     fetchQuestions();
   }, [testId]);
 
+  // Memoized handleSubmitTest function to avoid stale closures
+  const handleSubmitTest = useCallback(
+      async (finalAnswers = answers) => {
+        setIsTestCompleted(true);
+
+        if (finalAnswers.length < questions.length) {
+          const remainingQuestions = questions.slice(finalAnswers.length);
+          finalAnswers = [
+            ...finalAnswers,
+            ...remainingQuestions.map((question) => ({
+              testAnswer: question.answer,
+              candidateAnswer: '', // Empty answers for unanswered questions
+            })),
+          ];
+        }
+
+        try {
+          const response = await fetch(`/api/answers/${testId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(finalAnswers),
+          });
+
+          if (response.ok) {
+            const result: number = await response.json();
+            setTestResult(result); // Save the test result
+          } else {
+            console.error('Error submitting test:', response.statusText);
+          }
+        } catch (error) {
+          console.error('Error submitting test:', error);
+        }
+      },
+      [answers, questions, testId]
+  );
+
   useEffect(() => {
     if (timeLeft > 0 && !isTestCompleted) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -46,7 +84,7 @@ export default function TestPage({ params }: { params: { testId: string } }) {
     } else if (timeLeft === 0 && !isTestCompleted) {
       handleSubmitTest(); // Auto-submit when time is up
     }
-  }, [timeLeft, isTestCompleted]);
+  }, [timeLeft, isTestCompleted, handleSubmitTest]);
 
   const handleNextQuestion = () => {
     if (selectedAnswer.trim() === '') {
@@ -75,41 +113,6 @@ export default function TestPage({ params }: { params: { testId: string } }) {
     }
   };
 
-  const handleSubmitTest = async (finalAnswers = answers) => {
-    setIsTestCompleted(true);
-
-    // Ensure answers include all questions
-    if (finalAnswers.length < questions.length) {
-      const remainingQuestions = questions.slice(finalAnswers.length);
-      finalAnswers = [
-        ...finalAnswers,
-        ...remainingQuestions.map((question) => ({
-          testAnswer: question.answer,
-          candidateAnswer: '', // Empty answers for unanswered questions
-        })),
-      ];
-    }
-
-    try {
-      const response = await fetch(`/api/answers/${testId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(finalAnswers),
-      });
-
-      if (response.ok) {
-        const result: number = await response.json();
-        setTestResult(result); // Save the test result
-      } else {
-        console.error('Error submitting test:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error submitting test:', error);
-    }
-  };
-
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -122,68 +125,65 @@ export default function TestPage({ params }: { params: { testId: string } }) {
 
   if (isTestCompleted) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-lg w-full text-center">
-          {testResult ? (
-            <>
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-4">Test Completed!</h2>
-              <p className="text-gray-600 mb-4">
-                Your final score is {testResult} % 
-              </p>
-            </>
-          ) : (
-            <p>Submitting your answers...</p>
-          )}
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+          <div className="bg-white p-8 rounded-lg shadow-md max-w-lg w-full text-center">
+            {testResult !== null ? (
+                <>
+                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold mb-4">Test Completed!</h2>
+                  <p className="text-gray-600 mb-4">Your final score is {testResult} %</p>
+                </>
+            ) : (
+                <p>Submitting your answers...</p>
+            )}
+          </div>
         </div>
-      </div>
     );
   }
 
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-4xl w-full"> {/* Increased max-width */}
-        <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-4xl w-full">
+          <div className="flex justify-between items-center mb-4">
           <span className="text-lg font-semibold">
             Question {currentQuestionIndex + 1} of {questions.length}
           </span>
-          <span className="text-lg font-semibold text-blue-600">
+            <span className="text-lg font-semibold text-blue-600">
             {formatTime(timeLeft)}
           </span>
-        </div>
-        <Progress
-          value={((currentQuestionIndex + 1) / questions.length) * 100}
-          className="mb-6"
-        />
-        <h2 className="text-xl font-bold mb-6">{currentQuestion.question}</h2>
-        <RadioGroup
-          value={selectedAnswer}
-          onValueChange={setSelectedAnswer}
-          className="space-y-4"
-        >
-          {currentQuestion.options.map((option, index) => (
-            <div key={index} className="flex items-center space-x-4">
-              <div><RadioGroupItem value={option} id={`option-${index}`} /></div>
-              <div><Label htmlFor={`option-${index}`} className="text-lg">{option}</Label></div>
-            </div>
-          ))}
-        </RadioGroup>
-        {selectedAnswer === '' && (
-          <div className="flex items-center text-yellow-600 mt-6">
-            <AlertCircle className="w-6 h-6 mr-2" />
-            <span className="text-lg">Please select an answer before proceeding.</span>
           </div>
-        )}
-        <Button
-          onClick={handleNextQuestion}
-          disabled={selectedAnswer === ''}
-          className="w-full mt-8 text-lg py-6"
-        >
-          {currentQuestionIndex === questions.length - 1 ? 'Submit Test' : 'Next Question'}
-        </Button>
+          <Progress value={((currentQuestionIndex + 1) / questions.length) * 100} className="mb-6" />
+          <h2 className="text-xl font-bold mb-6">{currentQuestion.question}</h2>
+          <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer} className="space-y-4">
+            {currentQuestion.options.map((option, index) => (
+                <div key={index} className="flex items-center space-x-4">
+                  <div>
+                    <RadioGroupItem value={option} id={`option-${index}`} />
+                  </div>
+                  <div>
+                    <Label htmlFor={`option-${index}`} className="text-lg">
+                      {option}
+                    </Label>
+                  </div>
+                </div>
+            ))}
+          </RadioGroup>
+          {selectedAnswer === '' && (
+              <div className="flex items-center text-yellow-600 mt-6">
+                <AlertCircle className="w-6 h-6 mr-2" />
+                <span className="text-lg">Please select an answer before proceeding.</span>
+              </div>
+          )}
+          <Button
+              onClick={handleNextQuestion}
+              disabled={selectedAnswer === ''}
+              className="w-full mt-8 text-lg py-6"
+          >
+            {currentQuestionIndex === questions.length - 1 ? 'Submit Test' : 'Next Question'}
+          </Button>
+        </div>
       </div>
-    </div>
   );
 }
