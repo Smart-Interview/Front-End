@@ -13,8 +13,8 @@ interface Offer {
   id: number
   title: string;
   pdfFile: File;
-  recruiter: string;
-  requirements: string;
+  deadline: Date;
+  company: number
   
 }
 
@@ -22,12 +22,16 @@ export default function RecruitmentOffers() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentOffer, setCurrentOffer] = useState<Offer | null>(null);
+  //chat
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadOffers = async () => {
       try {
         const data = await fetchOffers();
-        setOffers(data);
+        setOffers(data.content);
+        console.log(data.content);
       } catch (error) {
         console.error('Error fetching offers:', error);
       }
@@ -46,7 +50,10 @@ export default function RecruitmentOffers() {
   
       // Call API to add offer
       const offer = await addOffer(newOfferFormData); // API call with FormData
-      setOffers([...offers, offer]);
+      //setOffers([...offers, offer]);
+      const updatedOffersData = await fetchOffers();
+      setOffers(updatedOffersData.content);
+      
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error adding offer:', error);
@@ -102,9 +109,9 @@ export default function RecruitmentOffers() {
         <TableHeader>
           <TableRow>
             <TableHead>Title</TableHead>
-            <TableHead>Description path</TableHead>
-            <TableHead>Recruiter</TableHead>
-            <TableHead>Requirements</TableHead>
+            {/* <TableHead>Description path</TableHead> */}
+            <TableHead>Deadline</TableHead>
+            {/* <TableHead>Requirements</TableHead> */}
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -112,9 +119,9 @@ export default function RecruitmentOffers() {
           {offers.map((offer) => (
             <TableRow key={offer.id}>
               <TableCell>{offer.title}</TableCell>
-              <TableCell>{offer.pdfFile?.name || "No file"}</TableCell>
-              <TableCell>{offer.recruiter}</TableCell>
-              <TableCell>{offer.requirements}</TableCell>
+              {/* <TableCell>{offer.pdfFile?.name || "No file"}</TableCell> */}
+              <TableCell>{new Date(offer.deadline).toLocaleDateString()}</TableCell>
+              {/* <TableCell>{offer.requirements}</TableCell> */}
               <TableCell>
                 <div className="flex space-x-2">
                   <Button
@@ -151,10 +158,17 @@ interface OfferFormProps {
 
 function OfferForm({ offer, onSubmit, onCancel }: OfferFormProps) {
   const [title, setTitle] = useState(offer?.title || "");
+  const [company, setCompany] = useState<number | null>(offer?.company || null);
   const [pdfFile, setPdfFile] = useState<File | null>(offer?.pdfFile || null);
-  const [recruiter, setRecruiter] = useState(offer?.recruiter || "");
-  const [requirements, setRequirements] = useState(offer?.requirements || "");
+  const [deadline, setDeadline] = useState<Date | null>(offer?.deadline || null);
+  // const [requirements, setRequirements] = useState(offer?.requirements || "");
   const [error, setError] = useState<string | null>(null);
+
+
+
+  const formatDate = (date: Date): string => {
+    return date.toISOString().slice(0, 10);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,29 +185,52 @@ function OfferForm({ offer, onSubmit, onCancel }: OfferFormProps) {
       return;
     }
 
-    if (requirements.length < 10) {
-      setError("Requirements must be at least 10 characters long.");
-      return;
-    }
+    // if (requirements.length < 10) {
+    //   setError("Requirements must be at least 10 characters long.");
+    //   return;
+    // }
 
     const formData = new FormData();
     formData.append("title", title);
-    formData.append("recruiter", recruiter);
-    formData.append("requirements", requirements);
-    formData.append("pdfFile", pdfFile);
-    
-    if (offer) {
-      formData.append("id", offer.id.toString()); // Include id if editing
+
+    if (deadline) {
+      formData.append("deadline", formatDate(deadline));
+    } else {
+      setError("Deadline is required.");
+      return;
     }
+    // formData.append("requirements", requirements);
+    formData.append("pdfFile", pdfFile);
+    formData.append("company", company !== null ? company.toString() : ''); // Convert number to string
+    
+   
 
     setError(null);
     onSubmit(formData);
+  };
+
+
+
+  const handleCompanyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const companyValue = e.target.value;
+    setCompany(companyValue ? parseInt(companyValue, 10) : null);
+  };
+
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dateStr = e.target.value;
+    setDeadline(dateStr ? new Date(dateStr) : null);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setPdfFile(e.target.files[0]);
     }
+
+ 
+
+  
+
   };
 
   return (
@@ -206,14 +243,14 @@ function OfferForm({ offer, onSubmit, onCancel }: OfferFormProps) {
 
       {/* Requirements input field */}
       <div>
-        <Label htmlFor="requirements">Requirements</Label>
-        <Input id="requirements"  value={requirements} onChange={(e) => setRequirements(e.target.value)} required />
+        <Label htmlFor="deadline">Deadline:</Label>
+        <Input id="deadline" type="date" value={deadline ? formatDate(deadline) : ''} onChange={handleDateChange} required/>      
       </div>
 
       {/* Recruiter input field */}
       <div>
-        <Label htmlFor="recruiter">Recruiter</Label>
-        <Input id="recruiter" type="number" value={recruiter} onChange={(e) => setRecruiter(e.target.value)} required />
+        <Label htmlFor="company">Company</Label>
+        <Input id="company" type="number" value={company !== null ? company.toString() : ''}  onChange={handleCompanyChange} required />
       </div>
 
       {/* PDF File input field */}
@@ -235,9 +272,4 @@ function OfferForm({ offer, onSubmit, onCancel }: OfferFormProps) {
   );
 }
 
-
-
-function setError(arg0: string) {
-  throw new Error("Function not implemented.");
-}
 
