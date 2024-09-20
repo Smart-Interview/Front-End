@@ -2,12 +2,12 @@ import { log } from "console";
 
 // lib/api.ts
 interface Offer {
-    id: number
-    title: string;
-    pdfFile: File;
-    requirements: string;
-    recruiter: string;
-  }
+  id: number
+  title: string;
+  pdfFile: File;
+  deadline: Date;
+  company: number
+}
 
 
 
@@ -18,10 +18,11 @@ interface Offer {
 const API_URL = 'http://localhost:8040/api/v1';
 
 export const fetchOffers = async () => {
-  const response = await fetch(`${API_URL}/offers`);
+  const response = await fetch(`${API_URL}/offers?companyId=1`);
   if (!response.ok) {
     throw new Error('Failed to fetch offers');
   }
+  //console.log("sssssss");
   return response.json();
 };
 
@@ -33,7 +34,8 @@ export const addOffer = async (formData : FormData) => {
       body: formData,  // No need for 'Content-Type', it will be automatically set
     });
   
-    if (!response.ok) {
+    if (!response.ok) 
+    {
         
             // Log formData contents before sending to API
       for (const [key, value] of formData.entries()) {
