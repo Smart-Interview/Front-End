@@ -1,4 +1,4 @@
-// src/app/company/page.tsx
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,31 +8,36 @@ interface Company {
   id: number;
   name: string;
   industry: string;
-  mail: string;
-  address: string;
+  location: string;
 }
 
 export default function CompanyPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const router = useRouter();
 
+  const ceoId = 1;
+
   useEffect(() => {
-    async function fetchCompanies() {
+    const fetchCompanies = async () => {
       try {
-        const response = await fetch("http://localhost:8020/company/companies"); // it was 8081
+        const response = await fetch(`/api/company_space/get_company/${ceoId}`);
+        const data = await response.json(); // Parse the response as JSON
+  
         if (response.ok) {
-          const data: Company[] = await response.json();
-          setCompanies(data);
+          const companiesArray = Array.isArray(data) ? data : [data];
+          setCompanies(companiesArray); // Set the companies state
+         
         } else {
-          console.error("Failed to fetch companies");
+          console.error('Error fetching companies:', data.error);
         }
       } catch (error) {
-        console.error("Error fetching companies:", error);
+        console.error('Error fetching companies:', error);
       }
-    }
-
+    };
+  
     fetchCompanies();
   }, []);
+  
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
@@ -53,8 +58,7 @@ export default function CompanyPage() {
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Industry</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mail</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -63,8 +67,7 @@ export default function CompanyPage() {
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{company.id}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{company.name}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{company.industry}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{company.mail}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{company.address}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{company.location}</td>
             </tr>
           ))}
         </tbody>
