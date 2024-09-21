@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlusCircle, Pencil, Trash2, FileText } from "lucide-react";
-import { fetchOffers, addOffer, updateOffer, deleteOffer } from "@/lib/api";
+import {updateOffer, deleteOffer } from "@/app/api/rh_space/route";
+import { fetchOffers } from '@/app/api/rh_space/route';
+
 
 interface Offer {
   id: number
@@ -29,9 +31,17 @@ export default function RecruitmentOffers() {
   useEffect(() => {
     const loadOffers = async () => {
       try {
-        const data = await fetchOffers();
-        setOffers(data.content);
-        console.log(data.content);
+
+        const response = await fetch('/api/rh_space?companyId=1'); // Include companyId in the request
+        const data = await response.json(); // Parse the response as JSON
+
+        if (response.ok) {
+          setOffers(data.content); // Now you can safely access data.content
+          console.log(data.content);
+        } else {
+          console.error('Error fetching offers:', data.error);
+        }
+
       } catch (error) {
         console.error('Error fetching offers:', error);
       }
@@ -42,46 +52,86 @@ export default function RecruitmentOffers() {
   
 
   const handleAddOffer = async (newOfferFormData: FormData) => {
-    try {
-      // Log formData contents before sending to API
-      for (const [key, value] of newOfferFormData.entries()) {
-        console.log(`${key}:`, value);  // Log key and value of each formData entry
-      }
-  
-      // Call API to add offer
-      const offer = await addOffer(newOfferFormData); // API call with FormData
-      //setOffers([...offers, offer]);
-      const updatedOffersData = await fetchOffers();
-      setOffers(updatedOffersData.content);
-      
-      setIsDialogOpen(false);
-    } catch (error) {
-      console.error('Error adding offer:', error);
+  try {
+    // Log formData contents before sending to API
+    for (const [key, value] of newOfferFormData.entries()) {
+      console.log(`${key}:`, value); // Log key and value of each FormData entry
     }
-  };
+
+    // Call API to add offer
+    const response = await fetch('/api/rh_space/create_offer', {
+      method: 'POST', // Specify the POST method
+      body: newOfferFormData, // Send the FormData directly
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Error: ${errorData.error}`);
+    }
+
+    const offer = await response.json(); // Get the response data
+
+    // Optionally update offers state here if necessary
+    const updatedOffersData = await fetchOffers();
+    setOffers(updatedOffersData.content);
+
+    // Close dialog or perform any other UI updates
+    setIsDialogOpen(false);
+  } catch (error) {
+    console.error('Error adding offer:', error);
+  }
+};
   
   
 
-  const handleEditOffer = async (editedOfferFormData: FormData) => {
-    try {
-      const offer = await updateOffer(editedOfferFormData);
-      setOffers(
-        offers.map((offer) => (offer.id === parseInt(editedOfferFormData.get('id') as string) ? offer : offer))
-      );
-      setIsDialogOpen(false);
-    } catch (error) {
-      console.error('Error updating offer:', error);
+const handleEditOffer = async (updatedOfferFormData: FormData) => {
+  try {
+    // Log formData contents for debugging
+    for (const [key, value] of updatedOfferFormData.entries()) {
+      console.log(`${key}:`, value);
     }
-  };
 
-  const handleDeleteOffer = async (id: number) => {
-    try {
-      await deleteOffer(id);
-      setOffers(offers.filter((offer) => offer.id !== id));
-    } catch (error) {
-      console.error('Error deleting offer:', error);
+    // Call the API to update the offer
+    const response = await fetch(`/api/rh_space/update_offer/${updatedOfferFormData.get('id')}`, {  // Make sure the correct endpoint is used
+      method: 'PUT',
+      body: updatedOfferFormData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update offer');
     }
-  };
+
+    const updatedOffer = await response.json();
+    const updatedOffersData = await fetchOffers();
+    setOffers(updatedOffersData.content);
+
+    setIsDialogOpen(false);
+  } catch (error) {
+    console.error('Error updating offer:', error);
+  }
+};
+
+
+
+
+
+const handleDeleteOffer = async (id: number) => {
+  try {
+    const response = await fetch(`/api/rh_space/delete_offer/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete offer');
+    }
+
+    setOffers(offers.filter((offer) => offer.id !== id));
+  } catch (error) {
+    console.error('Error deleting offer:', error);
+    // Optionally, you can set an error state here for UI feedback
+  }
+};
 
   return (
     <div className="container mx-auto py-10">
@@ -167,8 +217,17 @@ function OfferForm({ offer, onSubmit, onCancel }: OfferFormProps) {
 
 
   const formatDate = (date: Date): string => {
-    return date.toISOString().slice(0, 10);
+    return new Date(date).toISOString().slice(0, 10);
   };
+
+
+
+  // const formatDate = (date: Date | null): string => {
+  //   if (date && !isNaN(new Date(date).getTime())) {
+  //     return new Date(date).toISOString().slice(0, 10);
+  //   }
+  //   return ''; // Return empty string for invalid date
+  // };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,10 +239,10 @@ function OfferForm({ offer, onSubmit, onCancel }: OfferFormProps) {
     setError(null);
 
   // Validate the length of title and requirements
-    if (title.length < 5) {
-      setError("Title must be at least 5 characters long.");
-      return;
-    }
+    // if (title.length < 5) {
+    //   setError("Title must be at least 5 characters long.");
+    //   return;
+    // }
 
     // if (requirements.length < 10) {
     //   setError("Requirements must be at least 10 characters long.");
@@ -199,6 +258,11 @@ function OfferForm({ offer, onSubmit, onCancel }: OfferFormProps) {
       setError("Deadline is required.");
       return;
     }
+
+    if (offer?.id) {
+      formData.append("id", offer.id.toString()); // Add offer ID for updates
+    }
+
     // formData.append("requirements", requirements);
     formData.append("pdfFile", pdfFile);
     formData.append("company", company !== null ? company.toString() : ''); // Convert number to string
