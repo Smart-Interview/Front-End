@@ -1,54 +1,163 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { UserIcon, BriefcaseIcon } from "lucide-react"
+'use client';
+
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { UserIcon, BriefcaseIcon } from "lucide-react";
 
 export default function RoleSelection() {
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
-        <h1 className="text-3xl font-bold text-center mb-8">Choose Your Role</h1>
-        <div className="flex flex-col sm:flex-row gap-8">
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-center">
-                <BriefcaseIcon className="mr-2 h-6 w-6" />
-                CEO
-              </CardTitle>
-              <CardDescription className="text-center">Register as a Company Executive</CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <ul className="space-y-2">
-                <li>Post job openings</li>
-                <li>Review candidate profiles</li>
-                <li>Manage your company's presence</li>
-              </ul>
-            </CardContent>
-            <CardFooter className="flex justify-center">
-              <Button className="w-full">Register as CEO</Button>
-            </CardFooter>
-          </Card>
+    const { data: session, status } = useSession();
+    const [loading, setLoading] = useState(false);
+    const [userId, setUserId] = useState(null);
+    const [companyId, setCompanyId] = useState(null);
+    const [role, setRole] = useState(null);
 
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-center">
-                <UserIcon className="mr-2 h-6 w-6" />
-                Candidate
-              </CardTitle>
-              <CardDescription className="text-center">Register as a Job Seeker</CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <ul className="space-y-2">
-                <li>Create your professional profile</li>
-                <li>Apply to job openings</li>
-                <li>Showcase your skills and experience</li>
-              </ul>
-            </CardContent>
-            <CardFooter className="flex justify-center">
-              <Button className="w-full">Register as Candidate</Button>
-            </CardFooter>
-          </Card>
+    const handleRegister = async (selectedRole) => {
+        setLoading(true);
+        setRole(selectedRole);
+
+        const postBody = {
+            userName: session?.user?.name,
+            email: session?.user?.email,
+        };
+
+        try {
+            let response;
+
+            if (selectedRole === "rh") {
+                // Send GET request for RH role
+                const email = session?.user?.email;
+                response = await fetch(`/api/register/rh/${email}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+            } else {
+                // Send POST request for other roles
+                response = await fetch(`/api/register/${selectedRole}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(postBody),
+                });
+            }
+
+            if (!response.ok) {
+                throw new Error("Failed to register or fetch data");
+            }
+
+            const data = await response.json();
+
+            if (data?.data) {
+                setUserId(data.data.id);
+                if (selectedRole === "rh") {
+                    setCompanyId(data.data.company);
+                }
+            }
+
+            console.log("User ID:", data.data.id);
+            if (selectedRole === "rh") {
+                console.log("Company ID:", data.data.company);
+            }
+
+        } catch (error) {
+            console.error("Error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Effect to store user ID, company ID, and role in local storage
+    useEffect(() => {
+        if (userId) {
+            localStorage.setItem('user_id', userId);
+            console.log("User ID stored in localStorage:", userId);
+        }
+        if (companyId) {
+            localStorage.setItem('company_id', String(companyId));
+            console.log("Company ID stored in localStorage:", companyId);
+        }
+        if (role) {
+            localStorage.setItem('role', role);
+            console.log("Role stored in localStorage:", role);
+        }
+    }, [userId, companyId, role]);
+
+    return (
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+            <div className="w-full max-w-4xl">
+                <h1 className="text-3xl font-bold text-center mb-8">Choose Your Role</h1>
+                <div className="flex flex-col sm:flex-row gap-8">
+                    <Card className="w-full">
+                        <CardHeader>
+                            <CardTitle className="flex items-center justify-center">
+                                <BriefcaseIcon className="mr-2 h-6 w-6" />
+                                CEO
+                            </CardTitle>
+                            <CardDescription className="text-center">Register as a Company Executive</CardDescription>
+                        </CardHeader>
+                        <CardContent className="text-center">
+                            <ul className="space-y-2">
+                                <li>Post job openings</li>
+                                <li>Review candidate profiles</li>
+                                <li>Manage your company presence</li>
+                            </ul>
+                        </CardContent>
+                        <CardFooter className="flex justify-center">
+                            <Button className="w-full" onClick={() => handleRegister("ceo")} disabled={loading}>
+                                {loading ? "Registering..." : "Register as CEO"}
+                            </Button>
+                        </CardFooter>
+                    </Card>
+
+                    <Card className="w-full">
+                        <CardHeader>
+                            <CardTitle className="flex items-center justify-center">
+                                <UserIcon className="mr-2 h-6 w-6" />
+                                Candidate
+                            </CardTitle>
+                            <CardDescription className="text-center">Register as a Job Seeker</CardDescription>
+                        </CardHeader>
+                        <CardContent className="text-center">
+                            <ul className="space-y-2">
+                                <li>Create your professional profile</li>
+                                <li>Apply to job openings</li>
+                                <li>Showcase your skills and experience</li>
+                            </ul>
+                        </CardContent>
+                        <CardFooter className="flex justify-center">
+                            <Button className="w-full" onClick={() => handleRegister("candidate")} disabled={loading}>
+                                {loading ? "Registering..." : "Register as Candidate"}
+                            </Button>
+                        </CardFooter>
+                    </Card>
+
+                    <Card className="w-full">
+                        <CardHeader>
+                            <CardTitle className="flex items-center justify-center">
+                                <BriefcaseIcon className="mr-2 h-6 w-6" />
+                                RH
+                            </CardTitle>
+                            <CardDescription className="text-center">Register as Human Resources</CardDescription>
+                        </CardHeader>
+                        <CardContent className="text-center">
+                            <ul className="space-y-2">
+                                <li>Manage job openings</li>
+                                <li>Review candidates</li>
+                                <li>Organize hiring processes</li>
+                            </ul>
+                        </CardContent>
+                        <CardFooter className="flex justify-center">
+                            <Button className="w-full" onClick={() => handleRegister("rh")} disabled={loading}>
+                                {loading ? "Registering..." : "Register as RH"}
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  )
+    );
 }
