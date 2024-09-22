@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 
 export default function ReportPage({ params }: { params: { offerId: string } }) {
     const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +47,11 @@ export default function ReportPage({ params }: { params: { offerId: string } }) 
         }
     };
 
+    useEffect(() => {
+        // Call submitReport on component mount to fetch report data
+        submitReport();
+    }, [offerId]);
+
     // Function to get badge color based on application status
     const getStatusColor = (status) => {
         switch (status) {
@@ -53,8 +59,6 @@ export default function ReportPage({ params }: { params: { offerId: string } }) 
                 return "bg-green-500";
             case "Rejected":
                 return "bg-red-500";
-            case "Under Review":
-                return "bg-yellow-500";
             default:
                 return "bg-gray-500";
         }
@@ -62,18 +66,11 @@ export default function ReportPage({ params }: { params: { offerId: string } }) 
 
     return (
         <div className="container mx-auto p-4 space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Generate Report for Offer ID: {offerId}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Button onClick={submitReport} disabled={isLoading}>
-                        {isLoading ? "Generating Report..." : "Generate Report"}
-                    </Button>
-                </CardContent>
-            </Card>
-
-            {reportData && (
+            {isLoading ? (
+                <div className="flex justify-center items-start h-32">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+            ) : (
                 <>
                     <Card>
                         <CardHeader>
@@ -81,7 +78,7 @@ export default function ReportPage({ params }: { params: { offerId: string } }) 
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {reportData.applications.map((app, index) => (
+                                {reportData?.applications.map((app, index) => (
                                     <Card key={index}>
                                         <CardHeader>
                                             <CardTitle className="text-lg">
@@ -112,7 +109,7 @@ export default function ReportPage({ params }: { params: { offerId: string } }) 
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {reportData.applications.flatMap(app =>
+                                    {reportData?.applications.flatMap(app =>
                                         app.candidates.map(candidate => (
                                             <TableRow key={candidate.id}>
                                                 <TableCell>
@@ -144,7 +141,7 @@ export default function ReportPage({ params }: { params: { offerId: string } }) 
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {reportData.tests
+                                    {reportData?.tests
                                         .sort((a, b) => b.score - a.score)
                                         .map((test, index) => (
                                             <TableRow key={test.id}>

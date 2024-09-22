@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from 'next/navigation'; // Import useRouter
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserIcon, BriefcaseIcon } from "lucide-react";
 
 export default function RoleSelection() {
     const { data: session, status } = useSession();
+    const router = useRouter(); // Initialize useRouter
     const [loading, setLoading] = useState(false);
     const [userId, setUserId] = useState(null);
     const [companyId, setCompanyId] = useState(null);
     const [role, setRole] = useState(null);
 
-    const handleRegister = async (selectedRole: any) => {
+    const handleRegister = async (selectedRole) => {
         setLoading(true);
         setRole(selectedRole);
 
@@ -26,7 +28,6 @@ export default function RoleSelection() {
             let response;
 
             if (selectedRole === "rh") {
-                // Send GET request for RH role
                 const email = session?.user?.email;
                 response = await fetch(`/api/register/rh/${email}`, {
                     method: "GET",
@@ -35,7 +36,6 @@ export default function RoleSelection() {
                     },
                 });
             } else {
-                // Send POST request for other roles
                 response = await fetch(`/api/register/${selectedRole}`, {
                     method: "POST",
                     headers: {
@@ -56,11 +56,15 @@ export default function RoleSelection() {
                 if (selectedRole === "rh") {
                     setCompanyId(data.data.company);
                 }
-            }
 
-            console.log("User ID:", data.data.id);
-            if (selectedRole === "rh") {
-                console.log("Company ID:", data.data.company);
+                // Redirect based on selected role
+                if (selectedRole === "ceo") {
+                    router.push("/ceo/companies");
+                } else if (selectedRole === "candidate") {
+                    router.push("/candidate");
+                } else if (selectedRole === "rh") {
+                    router.push("/hr/offers");
+                }
             }
 
         } catch (error) {
@@ -70,19 +74,15 @@ export default function RoleSelection() {
         }
     };
 
-    // Effect to store user ID, company ID, and role in local storage
     useEffect(() => {
         if (userId) {
             localStorage.setItem('user_id', userId);
-            console.log("User ID stored in localStorage:", userId);
         }
         if (companyId) {
             localStorage.setItem('company_id', String(companyId));
-            console.log("Company ID stored in localStorage:", companyId);
         }
         if (role) {
             localStorage.setItem('role', role);
-            console.log("Role stored in localStorage:", role);
         }
     }, [userId, companyId, role]);
 
