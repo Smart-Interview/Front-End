@@ -3,24 +3,23 @@ import { getAccessToken } from "@/utils/sessionTokenAccessor"; // Adjust the imp
 import { getServerSession } from "next-auth"; 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-
 const apiUrl = `${process.env.DEMO_BACKEND_URL}/api/v1`;
-
 
 export async function GET(request) {
     const session = await getServerSession(authOptions);
 
     if (session) {
         const { searchParams } = new URL(request.url);
-        const ceoId = request.url.split('/').pop(); 
+        //const companyId = searchParams.get('companyId');
+         // Get companyId from query parameters
 
-        //console.log("ceoId", ceoId);
+        const companyId = request.url.split('/').pop();
 
-        if (!ceoId) {
-            return new Response(JSON.stringify({ error: 'ceoId is required' }), { status: 400 });
+        if (!companyId) {
+            return new Response(JSON.stringify({ error: 'companyId is required' }), { status: 400 });
         }
 
-        const backendUrl = `${apiUrl}/companies/ceo/${ceoId}`;
+        const backendUrl = `${apiUrl}/rhs/company/${companyId}`;
 
         try {
             const accessToken = await getAccessToken();
@@ -32,13 +31,13 @@ export async function GET(request) {
             });
 
             if (!response.ok) {
-                return new Response(JSON.stringify({ error: 'Failed to fetch offers from backend' }), { status: 500 });
+                return new Response(JSON.stringify({ error: 'Failed to fetch HR employees from backend' }), { status: 500 });
             }
 
             const data = await response.json();
             return new Response(JSON.stringify(data), { status: 200 });
         } catch (error) {
-            return new Response(JSON.stringify({ error: 'Error fetching offers from backend' }), { status: 500 });
+            return new Response(JSON.stringify({ error: 'Error fetching HR employees from backend' }), { status: 500 });
         }
     }
 
@@ -47,16 +46,15 @@ export async function GET(request) {
 
 
 
-
-export const fetchCompanies = async (ceoId) => {
-    if (!ceoId) {
+export const fetchHrs = async (companyId) => {
+    if (!companyId) {
       throw new Error('companyId is required');
     }
   
-    const response = await fetch(`/api/company_space/get_company/${ceoId}`);
+    const response = await fetch(`/api/company_space/get_hr/${companyId}`);
     
     if (!response.ok) {
-      throw new Error('Failed to fetch offers');
+      throw new Error('Failed to fetch hrs');
     }
   
     return response.json();
