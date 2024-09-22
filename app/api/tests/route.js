@@ -9,12 +9,14 @@ export async function GET(request) {
     if (session) {
         const { searchParams } = new URL(request.url);
         const candidateId = searchParams.get('candidateId');
+        const pageNumber = searchParams.get('pageNumber') || 0;  // default to 0 if not provided
+        const pageSize = searchParams.get('pageSize') || 5;  // default to 10 if not provided
 
         if (!candidateId) {
             return new Response(JSON.stringify({ error: 'candidateId is required' }), { status: 400 });
         }
 
-        const backendUrl = `${process.env.DEMO_BACKEND_URL}/api/v1/tests?candidateId=${candidateId}`;
+        const backendUrl = `${process.env.DEMO_BACKEND_URL}/api/v1/tests?candidateId=${candidateId}&page=${pageNumber}&size=${pageSize}`;
 
         try {
             const accessToken = await getAccessToken();
