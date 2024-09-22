@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import DynamicNavbar from '@/components/dynamic-navbar';
-import Nav from '@/components/nav'
 import AuthStatus from "../components/authStatus"
 import SessionProviderWrapper from '@/utils/sessionProviderWrapper'
 
@@ -21,7 +20,7 @@ export default function RootLayout({
             <body className="antialiased">
             <DynamicNavbar />
             <AuthStatus />
-            <Nav />
+
             {children}
             </body>
             </html>
