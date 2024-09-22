@@ -1,68 +1,105 @@
-/* eslint-disable react/no-unescaped-entities */
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+'use client';
 
-type Interview = {
-  id: string
-  jobTitle: string
-  company: string
-  date: string
-  score: number
-  status: 'Passed' | 'Failed' | 'Pending'
-}
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {Loader2} from "lucide-react";
 
-const interviews: Interview[] = [
-  { id: '1', jobTitle: 'Frontend Developer', company: 'Tech Co', date: '2023-05-15', score: 85, status: 'Passed' },
-  { id: '2', jobTitle: 'Backend Engineer', company: 'Data Systems Inc', date: '2023-05-20', score: 78, status: 'Pending' },
-  { id: '3', jobTitle: 'Full Stack Developer', company: 'Web Solutions', date: '2023-05-25', score: 92, status: 'Passed' },
-  { id: '4', jobTitle: 'UI/UX Designer', company: 'Creative Designs', date: '2023-05-30', score: 65, status: 'Failed' },
-  { id: '5', jobTitle: 'DevOps Engineer', company: 'Cloud Systems', date: '2023-06-05', score: 88, status: 'Passed' },
-]
+type Test = {
+  id: number;
+  offer: {
+    id: number;
+    title: string;
+    company: {
+      id: number;
+      name: string;
+      industry: string;
+      location: string;
+    };
+    deadline: string;
+  };
+  candidate: null; // Assuming this can be null
+  score: number;
+  createdAt: string;
+};
 
-const StatusIndicator = ({ status }: { status: Interview['status'] }) => {
-  const baseClasses = "px-3 py-1 rounded-full text-xs font-semibold w-20 inline-flex items-center justify-center"
-  const colorClasses = {
-    Passed: "bg-green-500 text-white",
-    Failed: "bg-red-500 text-white",
-    Pending: "bg-yellow-500 text-white"
+export default function TestsPage() {
+  const [tests, setTests] = useState<Test[]>([]);
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedCandidateId = localStorage.getItem('user_id');
+
+    const fetchTests = async () => {
+      if (!storedCandidateId) return;
+
+      try {
+        const response = await fetch(`/api/tests?candidateId=${storedCandidateId}`);
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch test data');
+        }
+
+        const data = await response.json();
+        setTests(data.content); // Adjust based on your API response structure
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false); // Set loading to false after fetch
+      }
+    };
+
+    fetchTests();
+  }, []);
+
+  if (loading) {
+    return (
+        <div className="flex justify-center items-start h-32">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
   }
 
   return (
-    <span className={`${baseClasses} ${colorClasses[status]}`} aria-label={`Status: ${status}`}>
-      {status}
-    </span>
-  )
-}
-
-export default function CandidatePerformanceTable() {
-  return (
-    <div className="container mx-auto py-10">
-      <Table>
-        <TableCaption>Candidate's Interview Performance</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead >Job Title</TableHead>
-            <TableHead>Company</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead >Score</TableHead>
-            <TableHead className="w-[100px]">Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {interviews.map((interview) => (
-            <TableRow key={interview.id}>
-              <TableCell className="font-medium">{interview.jobTitle}</TableCell>
-              <TableCell>{interview.company}</TableCell>
-              <TableCell>{interview.date}</TableCell>
-              <TableCell >{interview.score}</TableCell>
-              <TableCell>
-                <div className="flex justify-end">
-                  <StatusIndicator status={interview.status} />
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )
+      <div className="min-h-screen bg-background p-8">
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle>My Tests</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Job Title</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Score</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tests.map((test) => (
+                    <TableRow key={test.id}>
+                      <TableCell className="font-medium">{test.offer.title}</TableCell>
+                      <TableCell>{test.offer.company.name}</TableCell>
+                      <TableCell>{test.score}</TableCell>
+                      <TableCell>
+                        {new Date(test.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </TableCell>
+                    </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+  );
 }
