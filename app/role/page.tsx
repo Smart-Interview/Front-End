@@ -13,7 +13,7 @@ export default function RoleSelection() {
     const [companyId, setCompanyId] = useState(null);
     const [role, setRole] = useState(null);
 
-    const handleRegister = async (selectedRole) => {
+    const handleRegister = async (selectedRole: any) => {
         setLoading(true);
         setRole(selectedRole);
 

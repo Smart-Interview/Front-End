@@ -1,13 +1,15 @@
 "use client";
 
+import Link from 'next/link';
+import { PlusCircle, Pencil, Trash2, FileText, Link as LinkIcon } from "lucide-react"; // Include LinkIcon in your imports
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { PlusCircle, Pencil, Trash2, FileText } from "lucide-react";
-import {updateOffer, deleteOffer } from "@/app/api/rh_space/route";
 import { fetchOffers } from '@/app/api/rh_space/route';
 
 
@@ -24,39 +26,52 @@ export default function RecruitmentOffers() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentOffer, setCurrentOffer] = useState<Offer | null>(null);
-  //chat
+  
+  const [isMounted, setIsMounted] = useState(false); // Ensure client-side only code
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const router = useRouter();
+
   useEffect(() => {
+
+    setIsMounted(true);
+
     const loadOffers = async () => {
       try {
-
-        const response = await fetch('/api/rh_space?companyId=1'); // Include companyId in the request
-        const data = await response.json(); // Parse the response as JSON
-
-        if (response.ok) {
-          setOffers(data.content); // Now you can safely access data.content
-          console.log(data.content);
+        const companyId = localStorage.getItem('company_id'); // Retrieve company_id from localStorage
+  
+        if (companyId) {
+          const response = await fetch(`/api/rh_space?companyId=${companyId}`); // Use companyId from localStorage
+          const data = await response.json(); // Parse the response as JSON
+  
+          if (response.ok) {
+            setOffers(data.content); // Now you can safely access data.content
+            //console.log(data.content);
+          } else {
+            console.error('Error fetching offers:', data.error);
+          }
         } else {
-          console.error('Error fetching offers:', data.error);
+          console.error('Company ID not found in localStorage');
         }
-
       } catch (error) {
         console.error('Error fetching offers:', error);
       }
     };
-
+  
     loadOffers();
   }, []);
+  
   
 
   const handleAddOffer = async (newOfferFormData: FormData) => {
   try {
+
+    const companyId = localStorage.getItem('company_id');
     // Log formData contents before sending to API
-    for (const [key, value] of newOfferFormData.entries()) {
-      console.log(`${key}:`, value); // Log key and value of each FormData entry
-    }
+    // for (const [key, value] of newOfferFormData.entries()) {
+    //   console.log(`${key}:`, value); // Log key and value of each FormData entry
+    //  }
 
     // Call API to add offer
     const response = await fetch('/api/rh_space/create_offer', {
@@ -72,8 +87,16 @@ export default function RecruitmentOffers() {
     const offer = await response.json(); // Get the response data
 
     // Optionally update offers state here if necessary
-    const updatedOffersData = await fetchOffers();
-    setOffers(updatedOffersData.content);
+    if(companyId)
+    {
+      const updatedOffersData = await fetchOffers(companyId);
+      setOffers(updatedOffersData.content);
+    }
+    else
+    {
+      console.log("Company Id is mandatory");
+    }
+    
 
     // Close dialog or perform any other UI updates
     setIsDialogOpen(false);
@@ -132,6 +155,55 @@ const handleDeleteOffer = async (id: number) => {
     // Optionally, you can set an error state here for UI feedback
   }
 };
+  
+
+const handleDownload = async (offerId: number) => {
+  console.log("Downloading offer with ID:", offerId);
+  try {
+    const response = await fetch(`/api/file/${offerId}`);
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch file");
+    }
+
+    const blob = await response.blob(); // Get the blob from the response
+    const pdfUrl = URL.createObjectURL(blob); // Create a URL for the blob
+
+    const link = document.createElement('a');
+    link.href = pdfUrl; // Use the blob URL here
+    link.download = `offer_${offerId}.pdf`; // Customize the filename
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Revoke the Blob URL to free up memory
+    URL.revokeObjectURL(pdfUrl);
+  } catch (error) {
+    console.error('Error downloading file:', error);
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+   const handleReportClick = (offerId: number) => {
+      if (isMounted) { // Ensure this is only executed on the client
+        router.push(`/hr/report/${offerId}`);
+      }
+};
+
+   if (!isMounted) {
+    return null; // Prevent server-side rendering of client-side only hooks
+}
+
+ 
 
   return (
     <div className="container mx-auto py-10">
@@ -155,44 +227,46 @@ const handleDeleteOffer = async (id: number) => {
           </DialogContent>
         </Dialog>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            {/* <TableHead>Description path</TableHead> */}
-            <TableHead>Deadline</TableHead>
-            {/* <TableHead>Requirements</TableHead> */}
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {offers.map((offer) => (
-            <TableRow key={offer.id}>
-              <TableCell>{offer.title}</TableCell>
-              {/* <TableCell>{offer.pdfFile?.name || "No file"}</TableCell> */}
-              <TableCell>{new Date(offer.deadline).toLocaleDateString()}</TableCell>
-              {/* <TableCell>{offer.requirements}</TableCell> */}
-              <TableCell>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setCurrentOffer(offer);
-                      setIsDialogOpen(true);
-                    }}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDeleteOffer(offer.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+
+      {/* Render offers as cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {offers.map((offer) => (
+          <Card key={offer.id} className="shadow-lg">
+            <CardHeader>
+              <CardTitle>{offer.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Deadline: {new Date(offer.deadline).toLocaleDateString()}</p>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setCurrentOffer(offer);
+                    setIsDialogOpen(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="destructive" size="sm" onClick={() => handleDeleteOffer(offer.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex space-x-2">
+                <Button variant="secondary" size="sm" onClick={() => handleReportClick(offer.id)}>
+                  <FileText className="h-4 w-4" /> Report
+                </Button>
+                {/* Link to download/view the job description using Next.js Link */}
+                <Button variant="secondary" size="sm" onClick={() => handleDownload(offer.id)}>
+                    <LinkIcon className="h-4 w-4" /> Job Description
+                </Button>
+              </div>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
@@ -213,7 +287,16 @@ function OfferForm({ offer, onSubmit, onCancel }: OfferFormProps) {
   const [deadline, setDeadline] = useState<Date | null>(offer?.deadline || null);
   // const [requirements, setRequirements] = useState(offer?.requirements || "");
   const [error, setError] = useState<string | null>(null);
+  
 
+  useEffect(() => {
+    const storedCompanyId = localStorage.getItem('company_id');
+    if (storedCompanyId) {
+      setCompany(parseInt(storedCompanyId, 10));
+    } else {
+      setError("Company ID not found in localStorage.");
+    }
+  }, []);
 
 
   const formatDate = (date: Date): string => {
@@ -309,12 +392,6 @@ function OfferForm({ offer, onSubmit, onCancel }: OfferFormProps) {
       <div>
         <Label htmlFor="deadline">Deadline:</Label>
         <Input id="deadline" type="date" value={deadline ? formatDate(deadline) : ''} onChange={handleDateChange} required/>      
-      </div>
-
-      {/* Recruiter input field */}
-      <div>
-        <Label htmlFor="company">Company</Label>
-        <Input id="company" type="number" value={company !== null ? company.toString() : ''}  onChange={handleCompanyChange} required />
       </div>
 
       {/* PDF File input field */}

@@ -1,30 +1,38 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Building2, Users, FileText, Briefcase, BarChart2, Menu } from 'lucide-react'
+import { Building2, Users, Briefcase, BarChart2, Menu } from 'lucide-react'
 
-type UserRole = 'ceo' | 'hr' | 'candidate' | null
+type UserRole = 'ceo' | 'rh' | 'candidate' | null
 
 const navLinks = {
   ceo: [
-    { href: '/companies', label: 'Companies', icon: Building2 },
-    { href: '/hr', label: 'HR', icon: Users },
+    { href: '/ceo/companies', label: 'Companies', icon: Building2 },
   ],
-  hr: [
-    { href: '/offers', label: 'Offers', icon: Briefcase },
-    { href: '/reports', label: 'Reports', icon: FileText },
+  rh: [
+    { href: '/hr/offers', label: 'Offers', icon: Briefcase },
   ],
   candidate: [
-    { href: '/applications', label: 'Applications', icon: Briefcase },
-    { href: '/performance', label: 'Performance', icon: BarChart2 },
+    { href: '/candidate', label: 'Applications', icon: Briefcase },
+    { href: '/candidate/applications', label: 'Applications', icon: Briefcase },
+    { href: '/candidate/tests', label: 'Performance', icon: BarChart2 },
   ],
 }
 
 export default function Navbar() {
-  // In a real application, you'd get the user role from your auth system
   const [userRole, setUserRole] = useState<UserRole>(null)
+
+  // Get role from localStorage when the component mounts
+  useEffect(() => {
+    const storedRole = localStorage.getItem('role') as UserRole || null;
+
+    //console.log(storedRole, "hhhhhhhhhhhhhhhh");
+    if (storedRole && ['ceo', 'rh', 'candidate'].includes(storedRole)) {
+      setUserRole(storedRole);
+    }
+  }, []);
 
   const links = userRole ? navLinks[userRole] : []
 
@@ -76,12 +84,6 @@ export default function Navbar() {
             </Sheet>
           </div>
         </div>
-      </div>
-      {/* Role switcher for demonstration purposes */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-center gap-2">
-        <Button onClick={() => setUserRole('ceo')}>CEO View</Button>
-        <Button onClick={() => setUserRole('hr')}>HR View</Button>
-        <Button onClick={() => setUserRole('candidate')}>Candidate View</Button>
       </div>
     </nav>
   )

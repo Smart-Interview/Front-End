@@ -44,3 +44,20 @@ export async function GET(request) {
 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
+
+
+
+
+export const fetchCompanies = async (ceoId) => {
+    if (!ceoId) {
+      throw new Error('companyId is required');
+    }
+  
+    const response = await fetch(`/api/company_space/get_company/${ceoId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch offers');
+    }
+  
+    return response.json();
+  };

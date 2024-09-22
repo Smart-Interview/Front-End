@@ -46,58 +46,26 @@ export async function GET(request) {
 
 
 
-export const fetchOffers = async () => {
-    const response = await fetch('/api/rh_space?companyId=1'); // Adjust companyId as needed
-    if (!response.ok) {
-      throw new Error('Failed to fetch offers');
-    }
-    return response.json();
-  };
+export const fetchOffers = async (companyId) => {
+  if (!companyId) {
+    throw new Error('companyId is required');
+  }
 
-
-
-
-
-
-
+  const response = await fetch(`/api/rh_space?companyId=${companyId}`);
   
+  if (!response.ok) {
+    throw new Error('Failed to fetch offers');
+  }
 
-// export async function POST(req) {
-//     const session = await getServerSession(authOptions);
-  
-//     if (!session) {
-//       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-//     }
+  return response.json();
+};
 
 
-//     const backendUrl = `${apiUrl}/offers`;
-  
-//     try {
-//       const formData = await req.formData(); // Get the FormData from the request
 
-//       // console.log('FormData entries:', [...formData.entries()]); // Log the entries for debugging
-//       // console.log('requesr made from ', backendUrl);
-//       const accessToken = await getAccessToken();
-  
-//       const response = await fetch(backendUrl, {
-//         method: 'POST',
-//         body: formData,
-//         headers: {
-//           Authorization: `Bearer ${accessToken}`,
-//         },
-//          // Send the FormData directly
-//       });
-  
-//       if (!response.ok) {
-//         return new Response(JSON.stringify({ error: 'Failed to add offer' }), { status: response.status });
-//       }
-  
-//       const data = await response.json();
-//       return new Response(JSON.stringify(data), { status: 201 });
-//     } catch (error) {
-//       return new Response(JSON.stringify({ error: 'Error adding offer' }), { status: 500 });
-//     }
-//   }
+
+
+
+
   
 
 
