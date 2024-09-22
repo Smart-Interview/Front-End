@@ -25,12 +25,6 @@ import { Eye, PlusCircle } from "lucide-react"
 import { fetchCompanies } from '@/app/api/company_space/get_company/[ceoId]/route';
 
 
-
-
-
-
-
-
 interface Company {
   id: number
   name: string
@@ -47,6 +41,7 @@ interface CompanyFormData {
 export default function CompanyPage() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  
   const [formData, setFormData] = useState<CompanyFormData>({
     name: "",
     industry: "",
@@ -81,7 +76,7 @@ export default function CompanyPage() {
   }, [])
 
   const handleViewHRs = (companyId: number) => {
-    router.push(`/ceo/companies?companyId=${companyId}/hrs`)
+    router.push(`/ceo/companies/${companyId}/hrs`)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
