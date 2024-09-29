@@ -5,6 +5,15 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Building2, Users, Briefcase, BarChart2, Menu } from 'lucide-react'
 
+import { useUserRole } from '@/app/context/UserRoleContext'; // Import the UserRole context
+
+import AuthStatus from "../components/authStatus"
+
+
+//import {keycloakSessionLogOut} from '@/components/authStatus'
+
+
+
 type UserRole = 'ceo' | 'rh' | 'candidate' | null
 
 const navLinks = {
@@ -15,14 +24,18 @@ const navLinks = {
     { href: '/hr/offers', label: 'Offers', icon: Briefcase },
   ],
   candidate: [
-    { href: '/candidate', label: 'Applications', icon: Briefcase },
+    { href: '/candidate', label: 'Offers', icon: Briefcase },
     { href: '/candidate/applications', label: 'Applications', icon: Briefcase },
-    { href: '/candidate/tests', label: 'Performance', icon: BarChart2 },
+    { href: '/candidate/tests', label: 'History', icon: BarChart2 },
   ],
 }
 
 export default function Navbar() {
-  const [userRole, setUserRole] = useState<UserRole>(null)
+  //const [userRole, setUserRole] = useState<UserRole>(null)
+  const { userRole, setUserRole } = useUserRole();
+  
+
+
 
   // Get role from localStorage when the component mounts
   useEffect(() => {
@@ -32,7 +45,7 @@ export default function Navbar() {
     if (storedRole && ['ceo', 'rh', 'candidate'].includes(storedRole)) {
       setUserRole(storedRole);
     }
-  }, []);
+  }, [[setUserRole]]);  // array kan khawi
 
   const links = userRole ? navLinks[userRole] : []
 
@@ -58,6 +71,7 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <AuthStatus />
           </div>
           <div className="flex items-center sm:hidden">
             <Sheet>

@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
-import { getAccessToken } from "@/utils/sessionTokenAccessor"; // Adjust the import if needed
+import { getAccessToken } from "@/utils/sessionTokenAccessor";
 import { getServerSession } from "next-auth"; 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-
 export async function GET(request, { params }) {
-
-  console.log("API route called with params:", params);    
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -14,7 +11,6 @@ export async function GET(request, { params }) {
   }
 
   const { id } = params;
-  console.log("iddd", id);
   const url = `${process.env.DEMO_BACKEND_URL}/api/v1/offers/file/${id}`;
   const accessToken = await getAccessToken();
 
@@ -22,23 +18,24 @@ export async function GET(request, { params }) {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/pdf',
-        'Accept': '*/*',
         Authorization: `Bearer ${accessToken}`,
       },
     });
 
     if (!response.ok) {
-      return NextResponse.json(
-        { error: await response.text() },
-        { status: response.status }
-      );
+      return NextResponse.json({ error: await response.text() }, { status: response.status });
     }
 
-    const blob = await response.blob();
-    const pdfUrl = URL.createObjectURL(blob);
-    
-    return NextResponse.json({ url: pdfUrl });
+    // Stream the PDF file
+    const pdfStream = await response.body;
+
+    // Send back the stream with appropriate headers
+    return new NextResponse(pdfStream, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="offer_${id}.pdf"`,
+      },
+    });
   } catch (error) {
     console.error('Error fetching the PDF:', error);
     return NextResponse.error();

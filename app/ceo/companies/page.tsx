@@ -41,6 +41,7 @@ interface CompanyFormData {
 export default function CompanyPage() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
   
   const [formData, setFormData] = useState<CompanyFormData>({
     name: "",
@@ -69,6 +70,10 @@ export default function CompanyPage() {
         }
       } catch (error) {
         console.error('Error fetching companies:', error)
+      }
+      finally
+      {
+        setLoading(false);
       }
     }
   
@@ -197,32 +202,42 @@ export default function CompanyPage() {
         </DialogContent>
       </Dialog>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">ID</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Industry</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {companies.map((company) => (
-            <TableRow key={company.id}>
-              <TableCell className="font-medium">{company.id}</TableCell>
-              <TableCell>{company.name}</TableCell>
-              <TableCell>{company.industry}</TableCell>
-              <TableCell>{company.location}</TableCell>
-              <TableCell className="text-right">
-                <Button variant="secondary" size="sm" onClick={() => handleViewHRs(company.id)}>
-                  <Eye className="h-4 w-4 mr-2" /> View HR
-                </Button>
-              </TableCell>
+      {loading ? (
+        <p>Loading companies...</p> // Show loading message or spinner
+      ) : companies.length > 0 ? (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">ID</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Industry</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {companies.map((company) => (
+              <TableRow key={company.id}>
+                <TableCell className="font-medium">{company.id}</TableCell>
+                <TableCell>{company.name}</TableCell>
+                <TableCell>{company.industry}</TableCell>
+                <TableCell>{company.location}</TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleViewHRs(company.id)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" /> View HR
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <p>No companies found.</p> // Show this if no companies are available
+      )}
     </div>
   )
 }

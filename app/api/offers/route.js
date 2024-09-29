@@ -7,7 +7,19 @@ export async function GET(request) {
 
     try {
         // Directly fetch the backend URL without adding an Authorization header
-        const response = await fetch(backendUrl);
+        const response = await fetch(backendUrl, {
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+                        'Pragma': 'no-cache',
+                        'Expires': '0',
+                        'Content-Type': 'application/json',
+                         // Automatically use the current origin
+                        'Access-Control-Request-Method': 'GET', // Adjust as needed
+                        
+        }
+        }
+        );
 
         if (!response.ok) {
             return new Response(JSON.stringify({ error: 'Failed to fetch job offers from backend' }), { status: 500 });
