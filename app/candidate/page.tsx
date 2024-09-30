@@ -12,6 +12,9 @@ import { Calendar } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle2, XCircle } from "lucide-react";
 
+import Router from 'next/router'
+
+
 interface Company {
   id: number;
   name: string;
@@ -36,7 +39,8 @@ export default function CandidateOffersPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-
+  
+  const router2 = useRouter()
 
 
 
@@ -59,9 +63,13 @@ export default function CandidateOffersPage() {
   useEffect(() => {
     const fetchOffers = async () => {
       try {
-        const response = await fetch('/api/offers');
+        const response = await fetch('/api/offers' , {cache: 'reload'});
         const data = await response.json();
         setOffers(data.content || []);
+
+       
+        
+        
         
       } catch (error) {
         console.error('Error fetching job offers:', error);
@@ -73,6 +81,7 @@ export default function CandidateOffersPage() {
     };
 
     fetchOffers();
+    //router2.refresh();
   }, []);
 
   const downloadJobDescription = async (offerId: number, offerTitle: string) => {
@@ -175,9 +184,8 @@ export default function CandidateOffersPage() {
   };
 
   const handleCloseDialog = () => {
-    //setDialogOpen(true);
+    
     setSubmitStatus(null);
-    //console.log("hhhhhhhhhhhhhhhh");
   };
 
 
@@ -286,7 +294,7 @@ export default function CandidateOffersPage() {
                 </CardFooter>
               </Card>
               ))}
-           </>     
+          </>     
               ) 
               
               
