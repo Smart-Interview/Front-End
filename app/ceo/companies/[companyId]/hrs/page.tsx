@@ -55,7 +55,7 @@ export default function AllHR() {
   const [hrList, setHrList] = useState<HR[]>([])
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [company_Id,setCompanyId] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null);
 
   const [newHR, setNewHR] = useState<newHR>({
@@ -78,7 +78,7 @@ export default function AllHR() {
   useEffect(() => {
 
     const fetchHRList = async () => {
-      setLoading(true);
+      
       try {
         // Fetch from the new API route
         const response = await fetch(`/api/company_space/get_hr/${companyId}`);
@@ -223,6 +223,11 @@ export default function AllHR() {
         </Dialog>
       </div>
       <div className="overflow-x-auto">
+      {loading ? (
+        <div className="flex justify-center items-center h-24">
+          <p>Loading...</p>
+        </div>
+      ) : (
         <Table>
           <TableHeader>
             <TableRow>
@@ -246,7 +251,7 @@ export default function AllHR() {
                       <Button variant="outline" size="sm" onClick={() => handleModify(hr.id)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDelete(hr.id)}>
+                      <Button variant="outline" size="sm" className="bg-red-500 text-white" onClick={() => handleDelete(hr.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -262,7 +267,8 @@ export default function AllHR() {
             )}
           </TableBody>
         </Table>
-      </div>
+      )}
+    </div>
     </div>
   )
 }

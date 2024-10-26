@@ -57,6 +57,10 @@ export default function RecruitmentOffers() {
       } catch (error) {
         console.error('Error fetching offers:', error);
       }
+      finally
+      {
+        setLoading(false);
+      }
     };
   
     loadOffers();
@@ -157,7 +161,7 @@ const handleDeleteOffer = async (id: number) => {
 };
   
 
-const handleDownload = async (offerId: number) => {
+const handleDownload = async (offerId: number, offerTitle: string) => {
   console.log("Downloading offer with ID:", offerId);
   try {
     const response = await fetch(`/api/file/${offerId}`);
@@ -171,7 +175,7 @@ const handleDownload = async (offerId: number) => {
 
     const link = document.createElement('a');
     link.href = pdfUrl; // Use the blob URL here
-    link.download = `offer_${offerId}.pdf`; // Customize the filename
+    link.download = `${offerTitle}_offer.pdf`; // Customize the filename
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -203,10 +207,19 @@ const handleDownload = async (offerId: number) => {
     return null; // Prevent server-side rendering of client-side only hooks
 }
 
+
+if (loading) {
+  return (
+    <div className="min-h-screen bg-white text-black flex flex-col items-center justify-center">
+      <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p className="text-xl font-semibold">Loading offers...</p>
+    </div>
+  )
+}
  
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-10 px-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Recruitment Offers</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -259,7 +272,7 @@ const handleDownload = async (offerId: number) => {
                   <FileText className="h-4 w-4" /> Report
                 </Button>
                 {/* Link to download/view the job description using Next.js Link */}
-                <Button variant="secondary" size="sm" onClick={() => handleDownload(offer.id)}>
+                <Button variant="secondary" size="sm" onClick={() => handleDownload(offer.id, offer.title)}>
                     <LinkIcon className="h-4 w-4" /> Job Description
                 </Button>
               </div>

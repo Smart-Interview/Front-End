@@ -4,7 +4,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 // Log out from Keycloak and clear the session
-async function keycloakSessionLogOut() {
+ async function keycloakSessionLogOut() {            //mkntch export
     try {
         await fetch(`/api/auth/logout`, { method: "GET" });
     } catch (err) {
@@ -27,19 +27,36 @@ export default function AuthStatus() {
         }
     }, [session, status]);
 
+    const handleLogout = () => {
+        // Clear local storage
+        localStorage.clear();
+
+        // Log out from Keycloak and then sign out
+        keycloakSessionLogOut().then(() => signOut({ callbackUrl: "/" }));
+    };
+
     if (status === "loading") {
-        return <div className="my-3">Loading...</div>;
-    } else if (session) {
-        return (
-            <div className="my-3">
-                Logged in as {session.user.name}{" "}
-                <div>User ID: {userId}</div>
+
+        <div className="my-3">
+        
 
                 <button
                     className="bg-blue-900 font-bold text-white py-1 px-2 rounded border border-gray-50"
-                    onClick={() => {
-                        keycloakSessionLogOut().then(() => signOut({ callbackUrl: "/" }));
-                    }}>
+                >
+                    Logging in...
+                </button>
+       </div>
+
+
+        //return <div className="my-3">Loading...</div>;
+    } else if (session) {
+        return (
+            <div className="my-3">
+                {/* Logged in as {session.user.name}{" "} */}
+
+                <button
+                    className="bg-blue-900 font-bold text-white py-1 px-2 rounded border border-gray-50"
+                    onClick={handleLogout}>
                     Log out
                 </button>
             </div>
@@ -48,7 +65,7 @@ export default function AuthStatus() {
 
     return (
         <div className="my-3">
-            Not logged in.{" "}
+            {/* Not logged in.{" "} */}
             <button
                 className="bg-blue-900 font-bold text-white py-1 px-2 rounded border border-gray-50"
                 onClick={() => signIn("keycloak")}>

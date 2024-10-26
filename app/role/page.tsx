@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'; // Import useRouter
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserIcon, BriefcaseIcon } from "lucide-react";
+import { useUserRole } from "@/app/context/UserRoleContext"; // Import the context hook
+
 
 export default function RoleSelection() {
     const { data: session, status } = useSession();
@@ -14,8 +16,9 @@ export default function RoleSelection() {
     const [userId, setUserId] = useState(null);
     const [companyId, setCompanyId] = useState(null);
     const [role, setRole] = useState(null);
+    const { setUserRole } = useUserRole()
 
-    const handleRegister = async (selectedRole) => {
+    const handleRegister = async (selectedRole: any) => {
         setLoading(true);
         setRole(selectedRole);
 
@@ -48,7 +51,8 @@ export default function RoleSelection() {
             if (!response.ok) {
                 throw new Error("Failed to register or fetch data");
             }
-
+            
+            setUserRole(selectedRole);
             const data = await response.json();
 
             if (data?.data) {
@@ -102,7 +106,7 @@ export default function RoleSelection() {
                         <CardContent className="text-center">
                             <ul className="space-y-2">
                                 <li>Post job openings</li>
-                                <li>Review candidate profiles</li>
+                                <li>Manage your HRs</li>
                                 <li>Manage your company presence</li>
                             </ul>
                         </CardContent>
@@ -121,10 +125,10 @@ export default function RoleSelection() {
                             </CardTitle>
                             <CardDescription className="text-center">Register as a Job Seeker</CardDescription>
                         </CardHeader>
-                        <CardContent className="text-center">
+                        <CardContent className="text-center ">
                             <ul className="space-y-2">
                                 <li>Create your professional profile</li>
-                                <li>Apply to job openings</li>
+                                <li>Apply to job offers</li>
                                 <li>Showcase your skills and experience</li>
                             </ul>
                         </CardContent>
@@ -139,14 +143,14 @@ export default function RoleSelection() {
                         <CardHeader>
                             <CardTitle className="flex items-center justify-center">
                                 <BriefcaseIcon className="mr-2 h-6 w-6" />
-                                RH
+                                HR
                             </CardTitle>
                             <CardDescription className="text-center">Register as Human Resources</CardDescription>
                         </CardHeader>
                         <CardContent className="text-center">
                             <ul className="space-y-2">
                                 <li>Manage job openings</li>
-                                <li>Review candidates</li>
+                                <li>Review candidates' performances</li>
                                 <li>Organize hiring processes</li>
                             </ul>
                         </CardContent>

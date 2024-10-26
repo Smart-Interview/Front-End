@@ -155,10 +155,15 @@ export default function ApplicationPage() {
                                   day: 'numeric',
                                 })}</TableCell>
                                 <TableCell>
-                                  <Badge variant={
-                                    application.status === 'ACCEPTED' ? 'default' :
-                                        application.status === 'REFUSED' ? 'destructive' : 'secondary'
-                                  }>
+                                  <Badge  
+                                           className={`inline-flex items-center justify-center w-24 rounded-md 
+                                            ${application.status === 'ACCEPTED' ? 'bg-green-500 text-white' : 
+                                              application.status === 'REFUSED' ? 'bg-red-500 text-white' : 
+                                              'bg-gray-300 text-black'}`}
+                                         
+                                         
+                                         
+                                         >
                                     {application.status}
                                   </Badge>
                                 </TableCell>
