@@ -1,28 +1,22 @@
 'use client'
+
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Building2, Users, Briefcase, BarChart2, Menu } from 'lucide-react'
+import { Building2, Briefcase, BarChart2, Menu } from 'lucide-react'
 
-import { useUserRole } from '@/app/context/UserRoleContext'; // Import the UserRole context
+import { useUserRole } from '../app/context/userRoleContext'; // Import UserRole context
 
 import AuthStatus from "../components/authStatus"
 
+// Define the UserRole type
+type UserRole = 'ceo' | 'rh' | 'candidate'
 
-//import {keycloakSessionLogOut} from '@/components/authStatus'
-
-
-
-type UserRole = 'ceo' | 'rh' | 'candidate' | null
-
-const navLinks = {
-  ceo: [
-    { href: '/ceo/companies', label: 'Companies', icon: Building2 },
-  ],
-  rh: [
-    { href: '/hr/offers', label: 'Offers', icon: Briefcase },
-  ],
+// Navigation links for each role
+const navLinks: Record<UserRole, { href: string; label: string; icon: any }[]> = {
+  ceo: [{ href: '/ceo/companies', label: 'Companies', icon: Building2 }],
+  rh: [{ href: '/hr/offers', label: 'Offers', icon: Briefcase }],
   candidate: [
     { href: '/candidate', label: 'Offers', icon: Briefcase },
     { href: '/candidate/applications', label: 'Applications', icon: Briefcase },
@@ -30,29 +24,30 @@ const navLinks = {
   ],
 }
 
+// Type guard to validate user role
+const isValidUserRole = (role: any): role is UserRole =>
+  ['ceo', 'rh', 'candidate'].includes(role)
+
+// Navbar component
 export default function Navbar() {
-  //const [userRole, setUserRole] = useState<UserRole>(null)
-  const { userRole, setUserRole } = useUserRole();
-  
+  const { userRole, setUserRole } = useUserRole() // Get role from context
 
-
-
-  // Get role from localStorage when the component mounts
+  // Retrieve role from localStorage when the component mounts
   useEffect(() => {
-    const storedRole = localStorage.getItem('role') as UserRole || null;
-
-    //console.log(storedRole, "hhhhhhhhhhhhhhhh");
-    if (storedRole && ['ceo', 'rh', 'candidate'].includes(storedRole)) {
-      setUserRole(storedRole);
+    const storedRole = localStorage.getItem('role') as UserRole | null
+    if (storedRole && isValidUserRole(storedRole)) {
+      setUserRole(storedRole)
     }
-  }, [[setUserRole]]);  // array kan khawi
+  }, [setUserRole])
 
-  const links = userRole ? navLinks[userRole] : []
+  // Get the links for the user's role or an empty array if no valid role
+  const links = userRole && isValidUserRole(userRole) ? navLinks[userRole] : []
 
   return (
     <nav className="bg-white shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
+          {/* Left Section */}
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="text-xl font-bold text-gray-800">
@@ -60,6 +55,8 @@ export default function Navbar() {
               </Link>
             </div>
           </div>
+
+          {/* Desktop Links */}
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {links.map((link) => (
               <Link
@@ -73,6 +70,8 @@ export default function Navbar() {
             ))}
             <AuthStatus />
           </div>
+
+          {/* Mobile Menu */}
           <div className="flex items-center sm:hidden">
             <Sheet>
               <SheetTrigger asChild>

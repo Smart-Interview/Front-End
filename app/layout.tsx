@@ -4,7 +4,7 @@ import DynamicNavbar from '@/components/dynamic-navbar';
 import AuthStatus from "../components/authStatus"
 import SessionProviderWrapper from '@/utils/sessionProviderWrapper'
 
-import { UserRoleProvider } from './context/UserRoleContext';
+import { UserRoleProvider } from './context/userRoleContext';
 
 
 export const metadata: Metadata = {

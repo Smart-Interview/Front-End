@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,28 +8,45 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 
+// Define types for report data
+interface Candidate {
+    id: number;
+    userName: string;
+    email: string;
+}
+
+interface Application {
+    status: string;
+    count: number;
+    candidates: Candidate[];
+}
+
+interface Test {
+    id: number;
+    candidate: Candidate;
+    score: number;
+    createdAt: string; // Assuming this is a date string
+}
+
+interface ReportData {
+    applications: Application[];
+    tests: Test[];
+}
+
 export default function ReportPage({ params }: { params: { offerId: string } }) {
     const [isLoading, setIsLoading] = useState(false);
-    const [reportData, setReportData] = useState(null);
+    const [reportData, setReportData] = useState<ReportData | null>(null);
     const router = useRouter();
+    const offerId = params.offerId;
 
-    const offerId = params.offerId; // Fetch the offerId from the route params
-
-    // Function to submit the report request
-    const submitReport = async () => {
+    const submitReport = useCallback(async () => {
         setIsLoading(true);
         try {
-            // Prepare the request body
-            const requestBody = {
-                offerId: offerId, // Include the offerId in the request body
-            };
+            const requestBody = { offerId };
 
-            // Make the API request to submit the report
             const response = await fetch("/api/report", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody),
             });
 
@@ -37,23 +54,20 @@ export default function ReportPage({ params }: { params: { offerId: string } }) 
                 throw new Error("Failed to generate report");
             }
 
-            // Extract and set the report data from the response
-            const data = await response.json();
+            const data: ReportData = await response.json(); // Type the response data
             setReportData(data);
         } catch (error) {
             console.error("Error submitting report:", error);
         } finally {
             setIsLoading(false);
         }
-    };
-
-    useEffect(() => {
-        // Call submitReport on component mount to fetch report data
-        submitReport();
     }, [offerId]);
 
-    // Function to get badge color based on application status
-    const getStatusColor = (status) => {
+    useEffect(() => {
+        submitReport();
+    }, [submitReport]);
+
+    const getStatusColor = (status: string) => {
         switch (status) {
             case "Accepted":
                 return "bg-green-500";
@@ -109,11 +123,13 @@ export default function ReportPage({ params }: { params: { offerId: string } }) 
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {reportData?.applications.flatMap(app =>
-                                        app.candidates.map(candidate => (
+                                    {reportData?.applications.flatMap((app) =>
+                                        app.candidates.map((candidate) => (
                                             <TableRow key={candidate.id}>
                                                 <TableCell>
-                                                    <Badge className={getStatusColor(app.status)}>{app.status}</Badge>
+                                                    <Badge className={getStatusColor(app.status)}>
+                                                        {app.status}
+                                                    </Badge>
                                                 </TableCell>
                                                 <TableCell>{candidate.userName}</TableCell>
                                                 <TableCell>{candidate.email}</TableCell>
@@ -149,9 +165,12 @@ export default function ReportPage({ params }: { params: { offerId: string } }) 
                                                 <TableCell>{test.candidate.userName}</TableCell>
                                                 <TableCell>{test.candidate.email}</TableCell>
                                                 <TableCell>{test.score.toFixed(2)}</TableCell>
-                                                <TableCell>{new Date(test.createdAt).toLocaleDateString()}</TableCell>
+                                                <TableCell>
+                                                    {new Date(test.createdAt).toLocaleDateString()}
+                                                </TableCell>
                                             </TableRow>
                                         ))}
+
                                 </TableBody>
                             </Table>
                         </CardContent>

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'; // Import useRouter
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserIcon, BriefcaseIcon } from "lucide-react";
-import { useUserRole } from "@/app/context/UserRoleContext"; // Import the context hook
+import { useUserRole } from "../context/userRoleContext"; // Import the context hook
 
 
 export default function RoleSelection() {
@@ -150,7 +150,7 @@ export default function RoleSelection() {
                         <CardContent className="text-center">
                             <ul className="space-y-2">
                                 <li>Manage job openings</li>
-                                <li>Review candidates' performances</li>
+                                <li>Review candidates performance</li>
                                 <li>Organize hiring processes</li>
                             </ul>
                         </CardContent>

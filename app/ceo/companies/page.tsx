@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -19,137 +19,115 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Eye, PlusCircle } from "lucide-react"
-
-import { fetchCompanies } from '@/app/api/company_space/get_company/[ceoId]/route';
-
+} from "@/components/ui/table";
+import { Eye, PlusCircle } from "lucide-react";
 
 interface Company {
-  id: number
-  name: string
-  industry: string
-  location: string
+  id: number;
+  name: string;
+  industry: string;
+  location: string;
 }
 
 interface CompanyFormData {
-  name: string
-  industry: string
-  location: string
+  name: string;
+  industry: string;
+  location: string;
 }
 
 export default function CompanyPage() {
-  const [companies, setCompanies] = useState<Company[]>([])
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
-  
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const [formData, setFormData] = useState<CompanyFormData>({
     name: "",
     industry: "",
     location: "",
-  })
-  const router = useRouter()
+  });
+  const router = useRouter();
+
+  const fetchCompanies = async (ceoId: string) => {
+    const response = await fetch(`/api/company_space/get_company/${ceoId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch companies');
+    }
+    
+    return response.json();
+  };
 
   useEffect(() => {
-    const fetchCompanies = async () => {
+    const loadCompanies = async () => {
       try {
-        const ceoId = localStorage.getItem('user_id')
+        const ceoId = localStorage.getItem("user_id");
         
-        if(ceoId) {
-          const response = await fetch(`/api/company_space/get_company/${ceoId}`)
-          const data = await response.json()
-
-          if (response.ok) {
-            const companiesArray = Array.isArray(data) ? data : [data]
-            setCompanies(companiesArray)
-          } else {
-            console.error('Error fetching companies:', data.error)
-          }
+        if (ceoId) {
+          const data = await fetchCompanies(ceoId);
+          const companiesArray = Array.isArray(data) ? data : [data];
+          setCompanies(companiesArray);
         } else {
-          console.error('CEO ID not found in localStorage')
+          console.error("CEO ID not found in localStorage");
         }
       } catch (error) {
-        console.error('Error fetching companies:', error)
-      }
-      finally
-      {
+        console.error("Error fetching companies:", error);
+      } finally {
         setLoading(false);
       }
-    }
-  
-    fetchCompanies()
-  }, [])
+    };
+
+    loadCompanies();
+  }, []);
 
   const handleViewHRs = (companyId: number) => {
-    router.push(`/ceo/companies/${companyId}/hrs`)
-  }
+    router.push(`/ceo/companies/${companyId}/hrs`);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prevData => ({
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
       ...prevData,
-      [name]: value
-    }))
-  }
-
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Get the ceoId from localStorage
-    const ceoId = localStorage.getItem('user_id');
-    
+
+    const ceoId = localStorage.getItem("user_id");
+
     if (!ceoId) {
-      console.error('CEO ID not found in localStorage');
+      console.error("CEO ID not found in localStorage");
       return;
     }
-  
+
     try {
-
-
-
-      // const payload = {
-      //   ...formData, // Spread the form data
-      //   ceo: parseInt(ceoId), // Add the ceoId to the payload as an integer
-      // };
-  
-      // // Log the payload to confirm it includes the CEO ID
-      // console.log("Request Payload:", payload);
-      // // Construct the API URL with the ceoId
-
-
       const apiUrl = `/api/company_space/create_company/${ceoId}`;
-  
-      // Make the POST request to the API
+
       const response = await fetch(apiUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...formData, // Spread the form data
+          ...formData,
           ceo: parseInt(ceoId), // Add the ceoId to the payload as an integer
         }),
       });
 
-      // console.log(formData);
-  
-      // Handle the response from the server
       if (response.ok) {
         const newCompany = await response.json();
         const updatedCompaniesData = await fetchCompanies(ceoId);
         setCompanies(updatedCompaniesData);
-        //setCompanies((prevCompanies) => [...prevCompanies, newCompany]); // Add the new company to the state
         setIsDialogOpen(false); // Close the dialog/modal
         setFormData({ name: "", industry: "", location: "" }); // Reset the form
       } else {
-        console.error('Error creating company:', await response.text());
+        console.error("Error creating company:", await response.text());
       }
     } catch (error) {
-      console.error('Error creating company:', error);
+      console.error("Error creating company:", error);
     }
   };
-  
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
@@ -203,7 +181,7 @@ export default function CompanyPage() {
       </Dialog>
 
       {loading ? (
-        <p>Loading companies...</p> // Show loading message or spinner
+        <p>Loading companies...</p>
       ) : companies.length > 0 ? (
         <Table>
           <TableHeader>
@@ -236,8 +214,8 @@ export default function CompanyPage() {
           </TableBody>
         </Table>
       ) : (
-        <p>No companies found.</p> // Show this if no companies are available
+        <p>No companies found.</p>
       )}
     </div>
-  )
+  );
 }

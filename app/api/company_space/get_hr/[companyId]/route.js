@@ -43,19 +43,3 @@ export async function GET(request) {
 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
-
-
-
-export const fetchHrs = async (companyId) => {
-    if (!companyId) {
-      throw new Error('companyId is required');
-    }
-  
-    const response = await fetch(`/api/company_space/get_hr/${companyId}`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch hrs');
-    }
-  
-    return response.json();
-  };
